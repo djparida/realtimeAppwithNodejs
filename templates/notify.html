@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Hello World</h1>
+    <input type="text" id="msg">
+    <button>Submit</button>
+    <!-- <h2  class="likes">Result: <%= notice %></h2> -->
+    <br>
+    <span class="likes">Likes: <%= likes %></span>
+    <br>
+    <span class="notices">Notices: <%= notices %></span>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io()
+    const likesOutput = document.querySelector('.likes')
+    socket.on('likes:update', likes => {
+        console.log("hiii");
+      likesOutput.textContent = `Likes: ${likes}`
+    })
+
+    var noticeOutput = document.querySelector('.notices')
+    const btn = document.querySelector('button')
+    btn.addEventListener('click', async () => {
+    var msg = $("#msg").val();
+      const response = await fetch('/notice', {
+        method: 'POST',
+        headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"notice":msg})
+    })
+    const data = await response.json();
+    console.log(data);
+    noticeOutput.textContent = `Notices: ${data.msg}`
+    })
+    
+    socket.on('notices:update', notice => {
+        console.log("hiii");
+        noticeOutput.textContent = `Notices: ${notice}`
+    })
+</script>
+</html>
