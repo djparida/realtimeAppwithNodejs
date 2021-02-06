@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Chatting</h1><hr>
+    <div>
+        <ul id="msgs">
+
+        </ul>
+    </div>
+    <hr>
+    <div>
+        <input type="text" placeholder="type your message" id="texting">
+        <br><button id="btn">Submit</button>
+    </div>
+    <br>
+    <hr>
+    <div>
+        <input type="text" placeholder="from user" id="fromuser"><br>
+        <input type="text" placeholder="to user" id="user"><br>
+        <input type="text" placeholder="type your message" id="texting2">
+        <br><button id="btn2">Submit</button>
+    </div>
+</body>
+<script>
+    const socket = io()
+    $("#btn").click(function(){
+        socket.emit('chat message', $("#texting").val());
+        $("#texting").val("");
+    })
+
+    $("#btn2").click(function(){
+        socket.emit('messaging', $("#fromuser").val(),$("#user").val(),$("#texting2").val());
+        $("#texting2").val("");
+        $("#user").val("");
+        $("#fromuser").val("");
+    })
+
+    socket.on('chat message', function(msg){
+        $("#msgs").append("<li>"+ msg +"</li>");
+    })
+
+    socket.on('messaging', data => {
+        console.log(data);
+        if(data.to == "ram"){
+            console.log(data);
+        }
+    })
+</script>
+</html>

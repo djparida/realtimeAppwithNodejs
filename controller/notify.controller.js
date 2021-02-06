@@ -7,6 +7,7 @@ exports.create = (req, res) => {
         });
     }else{
         const notification = new Notice({
+            
             notify: req.body.notice
         });
         notification.save()
