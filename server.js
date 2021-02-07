@@ -157,6 +157,26 @@ async function getusersExceptMe(myid){
   return response.data;
 }
 
+async function userResgister(uname,fname,lname,email,password){
+  var data = JSON.stringify({
+    "username":uname,
+    "first_name":fname,
+    "last_name":lname,
+    "email":email,
+    "password":password,
+    "is_superuser":false,
+    "is_staff":true});
+  var config = {
+    method: 'post',
+    url: 'http://localhost:3000/api/register',
+    headers: { 
+      'Content-Type': 'application/json',
+    },
+    data : data
+  };
+  const response = await axios(config);
+  return response.data;
+}
 
 
 app.use('/api',router);
@@ -214,6 +234,22 @@ app.post('/login', function(req, res){
 
 app.get('/register', function(req, res){
   res.render('registration')
+})
+
+app.post('/register', function(req, res){
+  var uname = req.body.username;
+  var fname = req.body.first_name;
+  var lname = req.body.last_name;
+  var email = req.body.email;
+  var pass = req.body.password;
+  userResgister(uname,fname,lname,email,pass)
+  .then(data => {
+    res.send(data);
+  }).catch(err => {
+    res.status(400).send({
+      message:"something went wrong || "+err.message
+    })
+  })
 })
 
 app.get('/profile',checkLogin, function (req, res){
