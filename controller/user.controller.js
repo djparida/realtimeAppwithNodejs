@@ -82,6 +82,17 @@ exports.login = (req, res) => {
     }
 }
 
+exports.findExcept = (req, res) => {
+    User.find({"_id":{"$ne": req.params.userId}})
+    .then(users => {
+        res.send(users)
+    }).catch(err => {
+        res.status(404).send({
+            message:"Something wrong: "+ err.message
+        })
+    })
+}
+
 exports.delete = (req, res) => {
     User.findByIdAndRemove(req.params.userId)
     .then(user => {

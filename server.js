@@ -118,6 +118,17 @@ async function getAllUser(){
   return response.data;
 }
 
+async function getusersExceptMe(myid){
+  var config = {
+    method: 'get',
+    url: 'http://localhost:3000/api/user_except/'+myid,
+    headers: { 
+    }
+  };
+  const response = await axios(config);
+  return response.data;
+}
+
 app.use('/api',router);
 userRoutes(router);
 
@@ -172,7 +183,8 @@ app.get('/profile',checkLogin, function (req, res){
 })
 
 app.get("/chatting", checkLogin,function(req, res){
-  getAllUser().then(data => {
+  var user = req.userInfo;
+  getusersExceptMe(user._id).then(data => {
     var allusers = data;
     var userInfo = req.userInfo;
     res.render('chatting',{userInfo:userInfo, users:allusers})

@@ -31,7 +31,7 @@
 					</div>
 					<div class="card-body contacts_body">
 						<ui class="contacts">
-						<li class="active">
+						<li>
 							<div class="d-flex bd-highlight">
 								<div class="img_cont">
 									<img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" class="rounded-circle user_img">
@@ -40,15 +40,16 @@
 								<div class="user_info">
                                     <p id="myid" style="display: none;"><%= userInfo._id %></p>
 									<span> <%= userInfo.username %></span>
-                                    <p><%= userInfo.first_name %></p>
-									<p><%= userInfo.username %> is online</p>
+                                    <p><%= userInfo.first_name %> <%= userInfo.last_name %></p>
+									<!-- <p><%= userInfo.username %> is online</p> -->
 								</div>
 							</div>
 						</li>
+                        <hr>
+                        <center><b style="color: white;">Friends</b></center>
+                        <hr>
                         <% for (var i=0; i < users.length; i++){%>
-                            <% if (users[i]._id== userInfo._id) { %>
-                            <% } else { %>
-                            <li onclick="getUserinfo('<%= users[i].first_name %>','<%= users[i]._id %>')">
+                            <li class="<%= users[i]._id %>" onclick="getUserinfo('<%= users[i].first_name %>','<%= users[i]._id %>')">
                                 <div class="d-flex bd-highlight">
                                     <div class="img_cont">
                                         <img src="https://static.turbosquid.com/Preview/001214/650/2V/boy-cartoon-3D-model_D.jpg" class="rounded-circle user_img">
@@ -56,11 +57,10 @@
                                     </div>
                                     <div class="user_info">
                                         <span><%= users[i].username %></span>
-                                        <p><%= users[i].first_name %></p>
+                                        <p><%= users[i].first_name %> <%= users[i].last_name %></p>
                                     </div>
                                 </div>
                             </li>
-                            <% } %>
                         <% } %>
 						</ui>
 					</div>
@@ -80,7 +80,6 @@
 									    <span>Chat with <%= users[i].first_name %></span>
                                     <% } %>
                                     <% } %>
-									<p>1767 Messages</p>
 								</div>
 								<div class="video_cam">
 									<span><i class="fas fa-video"></i></span>
@@ -97,17 +96,17 @@
 								</ul>
 							</div>
 						</div>
-						<div class="card-body msg_card_body">
+						<div class="card-body msg_card_body" id="<%= userInfo._id %>">
                             <% for (var i=0; i < users.length; i++){%>
                                 <% if (i==0) { %>
                                 <div id="<%= users[i]._id %>" class="msging">
                                     <span class="rcv_class" style="display: none;"><%= users[i]._id %></span>
-                                    <h1><%= users[i]._id %></h1>
+                                    <!-- <h1><%= users[i]._id %></h1> -->
                                 </div>
                                 <% } else { %>
                                     <div id="<%= users[i]._id %>" style="display: none;">
                                         <span class="rcv_class" style="display: none;"><%= users[i]._id %></span>
-                                        <h1><%= users[i]._id %></h1>
+                                        <!-- <h1><%= users[i]._id %></h1> -->
                                     </div>
                                 <% } %>
                             <% } %> 
@@ -130,6 +129,7 @@
 	</body>
     <script>
         var socket = io()
+        var me = "<%= userInfo._id %>";
         $(document).ready(function(){
             $('#action_menu_btn').click(function(){
                 $('.action_menu').toggle();
@@ -138,7 +138,7 @@
         function getUserinfo(user, id){
             $('.chat_info span').html("chat with "+user);
             var prev_id = $(".msg_card_body .msging").attr('id');
-            console.log(prev_id)
+            // console.log(prev_id)
             $("#"+prev_id).removeClass('msging');
             $("#"+prev_id).hide();
             $("#"+id).show();
@@ -157,13 +157,12 @@
                             '</div>'+
                         '</div>'
             $(".msg_card_body .msging").append(sendMsg);
-            // console.log($("#myid").html(), $('.msging .rcv_class').html());
-            socket.emit('messaging', $("#myid").html(),$('.msging .rcv_class').html(),msg);
+            socket.emit('messaging', me,$('.msging .rcv_class').html(),msg);
+            $("#pingMsg").val("");
             }
             
         }
-        function msgRecieve(id,msg){
-            console.log(msg);
+        function msgRecieve(to,from,msg){
             var rcvMsg = '<div class="d-flex justify-content-end mb-4">'+
 								'<div class="msg_cotainer_send">'+ msg +
 									'<span class="msg_time_send">8:55 AM, Today</span>'+
@@ -172,19 +171,18 @@
 							'<img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" class="rounded-circle user_img_msg">'+
 								'</div>'+
 							'</div>'
-            $("#"+id).append(rcvMsg);                
+            $("#"+to+" "+"#"+from).append(rcvMsg);                
         }
         socket.on('messaging', data => {
-        console.log(data);
-        var userid = data.from;
-        var rcvid = data.to;
+        // console.log(data);
+        var from = data.from;
+        var msgTo = data.to;
         var msg = data.messages;
-        var my_id = $("#myid").html();
-        if (my_id == userid){
-            console.log("hiii");
+        if (me == from){
             return false;
-        }else if(){
-            msgRecieve(rcvid, msg);
+        }else{
+            // console.log("Message came from "+ from +" to "+msgTo);
+            msgRecieve(msgTo,from,msg);
         }
 
     })

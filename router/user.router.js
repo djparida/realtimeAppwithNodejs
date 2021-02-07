@@ -6,4 +6,5 @@ module.exports = (app)=>{
     app.get('/user/:userId', user.findOne);
     app.post('/user/login', user.login);
     app.delete('/user/:userId', user.delete);
+    app.get('/user_except/:userId', user.findExcept);
 }
