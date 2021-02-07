@@ -151,15 +151,18 @@
         var me = "<%= userInfo._id %>";
         var online_users = "<%= online%>";
         $(document).ready(function(){
-            active_user = online_users.split(",");
-            for (i=0; i<active_user.length; i++){
+            if(online_users != ""){
+                active_user = online_users.split(",");
+                for (i=0; i<active_user.length; i++){
                 $("."+active_user[i]+" .online_icon").removeClass("offline");
+            }
+            }else{
             }
             $('#action_menu_btn').click(function(){
                 $('.action_menu').toggle();
             });
             setTimeout(function(){
-            socket.emit('online', me);
+                socket.emit('online', me);
             },1000)
         });
         function getUserinfo(user, id){
@@ -242,12 +245,10 @@
         if(step == 1){
             console.log("first play")
             const notification1 = new Audio('sound/notification_2.mp3'); 
-            // notification1.muted = false;
 		    notification1.play();  
         }else if(step == 2){
             console.log("2nd play")
             const notification2 = new Audio('sound/notification_1.mp3'); 
-            // notification2.muted = false;
 		    notification2.play();  
         }
     }

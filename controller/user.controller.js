@@ -1,4 +1,6 @@
 const User = require('../models/user.models');
+var passwordHash = require('password-hash');
+const { findByIdAndUpdate } = require('../models/user.models');
 
 exports.register = (req, res) =>{
     if(!req.body) {
@@ -13,7 +15,7 @@ exports.register = (req, res) =>{
         first_name: req.body.first_name,
         last_name: req.body.last_name,
         email: req.body.email,
-        password: req.body.password,
+        password: passwordHash.generate(req.body.password),
         is_superuser: req.body.is_superuser,
         is_staff: req.body.is_staff
     });
@@ -64,14 +66,21 @@ exports.login = (req, res) => {
             message: "Login Creds can not be empty"
         });
     }else{
-        User.findOne({username:req.body.username}, {password:req.body.password})
+        User.findOne({username:req.body.username})
         .then(user => {
             if(!user){
                 return res.status(404).send({
                     message: "Incorrect credentials"
                 }); 
             }else{
-                return res.send(user)
+                if(passwordHash.verify(req.body.password,user.password)){
+                    return res.send(user)
+                }else{
+                    res.status(400).send({
+                        message: "Incorrect Password"
+                    })
+                }
+                
             }
         })
         .catch(err => {
@@ -91,6 +100,35 @@ exports.findExcept = (req, res) => {
             message:"Something wrong: "+ err.message
         })
     })
+}
+
+exports.update = (req, res) => {
+    if(!req.body){
+        return res.status(400).send({
+            message: "User content can not be empty"
+        });
+    }else{
+        User.findByIdAndUpdate(req.params.userId, {
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            email:req.body.email,
+            password:passwordHash.generate(req.body.password)
+        }, {new:true})
+        .then(user => {
+            if(!user){
+                return res.status(404).send({
+                    message: "Ther is no user with id " + req.params.noteId
+                });
+            }else{
+                res.send(user);
+            }
+        }).catch(err => {
+            res.status(400).send({
+                message:"Something went wrong "+err.message
+            })
+        })
+
+    }
 }
 
 exports.delete = (req, res) => {

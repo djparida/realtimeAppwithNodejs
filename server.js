@@ -5,14 +5,13 @@ const io = require('socket.io')(http)
 const url = require('url');
 const dbconfig = require('./dbconfig');
 const mongoose = require('mongoose');
-const axios = require('axios');
-const qs = require('qs');
-const https = require('https');
 var cors = require('cors');
 var router = express.Router();
+
 const session = require('express-session');
 // const flash = require('flash'); 
 const flash = require('connect-flash'); 
+const api = require('./apicall');
 
 app.use(flash()); 
 
@@ -49,7 +48,7 @@ mongoose.connect(dbconfig.url, {
 
 let likes = 0
 let notices = 0
-var online_array = [];
+
 
 Array.prototype.remove = function() {
   var what, a = arguments, L = a.length, ax;
@@ -62,6 +61,7 @@ Array.prototype.remove = function() {
   return this;
 };
 
+var online_array = [];
 io.on('connection', socket => {
     console.log('a user connected!')
     socket.on('likes:updated', () => {
@@ -109,77 +109,26 @@ function checkLogin(req, res, next){
   }
 }
 
-async function userLogin(uname, password){
-  var data = JSON.stringify({"username":uname,"password":password});
-
-  var config = {
-    method: 'post',
-    url: 'http://localhost:3000/api/user/login',
-    headers: { 
-      'Content-Type': 'application/json', 
-    },
-    data : data
-  };
-  const response = await axios(config);
-  return response.data;
-}
-
-async function getUserInfo(userid){
-  var config = {
-    method: 'get',
-    url: 'http://localhost:3000/api/user/'+userid,
-    headers: { 
+function apiProtect(req, res, next){
+  if(!req.headers.authorization){
+    res.status(401).send({
+      message:"Unauthorized"
+    })
+  }else{
+    var data = Buffer.from(req.headers.authorization.split(" ")[1], 'base64').toString();
+    // var uname = data.split(":")[0]
+    // var password = data.split(":")[1]
+    if(data == "admin:Admin@123"){
+      next()
+    }else{
+      res.status(400).send({
+        message:"Invalid authorization"
+      })
     }
-  };
-  const response = await axios(config);
-  return response.data;
+  }
 }
 
-async function getAllUser(){
-  var config = {
-    method: 'get',
-    url: 'http://localhost:3000/api/users',
-    headers: { 
-    }
-  };
-  const response = await axios(config);
-  return response.data;
-}
-
-async function getusersExceptMe(myid){
-  var config = {
-    method: 'get',
-    url: 'http://localhost:3000/api/user_except/'+myid,
-    headers: { 
-    }
-  };
-  const response = await axios(config);
-  return response.data;
-}
-
-async function userResgister(uname,fname,lname,email,password){
-  var data = JSON.stringify({
-    "username":uname,
-    "first_name":fname,
-    "last_name":lname,
-    "email":email,
-    "password":password,
-    "is_superuser":false,
-    "is_staff":true});
-  var config = {
-    method: 'post',
-    url: 'http://localhost:3000/api/register',
-    headers: { 
-      'Content-Type': 'application/json',
-    },
-    data : data
-  };
-  const response = await axios(config);
-  return response.data;
-}
-
-
-app.use('/api',router);
+app.use('/api',apiProtect, router);
 userRoutes(router);
 
 app.get('/',checkLogin, function(req, res){
@@ -199,7 +148,7 @@ app.get('/main_page', function(req, res){
 })
 
 app.get('/test', function(req, res){
-  res.render('demo1/new_main')
+ res.send("hiii")
 })
 
 app.get('/chat', function(req, res){
@@ -216,17 +165,13 @@ app.post('/login', function(req, res){
   }else{
     var username = req.body.username;
     var password = req.body.password;
-    console.log("here plzz")
-    userLogin(username, password).then(data => {
-      console.log("yes am here");
-      console.log(data);
+    api.login(username, password).then(data => {
+      req.session.userdata = data;
+      res.redirect('/chatting')
     }).catch(err => {
       console.log(err.message)
-      req.flash('message', 'Success!!'); 
+      // req.flash('message', 'Success!!'); 
       res.redirect('/login')
-      // res.json({
-      //   message:"Invalid Credentials"
-      // })
     })
   }
 })
@@ -237,14 +182,9 @@ app.get('/register', function(req, res){
 })
 
 app.post('/register', function(req, res){
-  var uname = req.body.username;
-  var fname = req.body.first_name;
-  var lname = req.body.last_name;
-  var email = req.body.email;
-  var pass = req.body.password;
-  userResgister(uname,fname,lname,email,pass)
+  api.register(req.body.username,req.body.first_name,req.body.last_name,req.body.email,req.body.password)
   .then(data => {
-    res.send(data);
+    res.redirect('/login')
   }).catch(err => {
     res.status(400).send({
       message:"something went wrong || "+err.message
@@ -259,7 +199,7 @@ app.get('/profile',checkLogin, function (req, res){
 
 app.get("/chatting", checkLogin,function(req, res){
   var user = req.userInfo;
-  getusersExceptMe(user._id).then(data => {
+  api.users_except_me(user._id).then(data => {
     var allusers = data;
     var userInfo = req.userInfo;
     console.log(online_array);
