@@ -39,9 +39,8 @@
 								</div>
 								<div class="user_info">
                                     <p id="myid" style="display: none;"><%= userInfo._id %></p>
-									<span> <%= userInfo.username %></span>
-                                    <p><%= userInfo.first_name %> <%= userInfo.last_name %></p>
-									<!-- <p><%= userInfo.username %> is online</p> -->
+									<span><%= userInfo.first_name %> <%= userInfo.last_name %></span>
+                                    <p>@<%= userInfo.username %></p>
 								</div>
 							</div>
 						</li>
@@ -49,18 +48,33 @@
                         <center><b style="color: white;">Friends</b></center>
                         <hr>
                         <% for (var i=0; i < users.length; i++){%>
-                            <li class="<%= users[i]._id %>" onclick="getUserinfo('<%= users[i].first_name %>','<%= users[i]._id %>')">
-                                <div class="d-flex bd-highlight">
-                                    <div class="img_cont">
-                                        <img src="https://static.turbosquid.com/Preview/001214/650/2V/boy-cartoon-3D-model_D.jpg" class="rounded-circle user_img">
-                                        <span class="online_icon offline"></span>
+                            <% if (i == 0){ %>
+                                <li class="<%= users[i]._id %> active" onclick="getUserinfo('<%= users[i].first_name %>','<%= users[i]._id %>')">
+                                    <div class="d-flex bd-highlight">
+                                        <div class="img_cont">
+                                            <img src="https://static.turbosquid.com/Preview/001214/650/2V/boy-cartoon-3D-model_D.jpg" class="rounded-circle user_img">
+                                            <span class="online_icon offline"></span>
+                                        </div>
+                                        <div class="user_info">
+                                            <span><%= users[i].first_name %> <%= users[i].last_name %></span>
+                                            <p>@<%= users[i].username %></p>
+                                        </div>
                                     </div>
-                                    <div class="user_info">
-                                        <span><%= users[i].username %></span>
-                                        <p><%= users[i].first_name %> <%= users[i].last_name %></p>
+                                </li>
+                            <% } else {%>
+                                <li class="<%= users[i]._id %>" onclick="getUserinfo('<%= users[i].first_name %>','<%= users[i]._id %>')">
+                                    <div class="d-flex bd-highlight">
+                                        <div class="img_cont">
+                                            <img src="https://static.turbosquid.com/Preview/001214/650/2V/boy-cartoon-3D-model_D.jpg" class="rounded-circle user_img">
+                                            <span class="online_icon offline"></span>
+                                        </div>
+                                        <div class="user_info">
+                                            <span><%= users[i].first_name %> <%= users[i].last_name %></span>
+                                            <p>@<%= users[i].username %></p>
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
+                                </li>
+                            <% } %>
                         <% } %>
 						</ui>
 					</div>
@@ -138,11 +152,12 @@
         function getUserinfo(user, id){
             $('.chat_info span').html("chat with "+user);
             var prev_id = $(".msg_card_body .msging").attr('id');
-            // console.log(prev_id)
             $("#"+prev_id).removeClass('msging');
             $("#"+prev_id).hide();
             $("#"+id).show();
             $("#"+id).addClass('msging');
+            $(".contacts .active").removeClass("active");
+            $("."+id).addClass("active");
         }
         function sendMessage(){
             var msg = $("#pingMsg").val()
