@@ -45,6 +45,18 @@ mongoose.connect(dbconfig.url, {
 
 let likes = 0
 let notices = 0
+var online_array = [];
+
+Array.prototype.remove = function() {
+  var what, a = arguments, L = a.length, ax;
+  while (L && this.length) {
+      what = a[--L];
+      while ((ax = this.indexOf(what)) !== -1) {
+          this.splice(ax, 1);
+      }
+  }
+  return this;
+};
 
 io.on('connection', socket => {
     console.log('a user connected!')
@@ -63,6 +75,19 @@ io.on('connection', socket => {
     socket.on('messaging', function(from,to, msg){
       io.emit('messaging', {'from':from,'to':to,'messages': msg});
     })  
+
+    socket.on('online', function(me){
+      if(online_array.includes(me)){
+      }else{
+        online_array.push(me);
+      }
+      io.emit('online',{'online':me})
+    })
+
+    socket.on('offline', function(me){
+      online_array.remove(me);
+      io.emit('offline',{'offline':me})
+    })
 
 
     socket.on('disconnect', () => {
@@ -129,6 +154,8 @@ async function getusersExceptMe(myid){
   return response.data;
 }
 
+
+
 app.use('/api',router);
 userRoutes(router);
 
@@ -187,7 +214,8 @@ app.get("/chatting", checkLogin,function(req, res){
   getusersExceptMe(user._id).then(data => {
     var allusers = data;
     var userInfo = req.userInfo;
-    res.render('chatting',{userInfo:userInfo, users:allusers})
+    console.log(online_array);
+    res.render('chatting',{userInfo:userInfo, users:allusers, online:online_array})
   }).catch(err => {
     console.log(err.message);
     res.send({

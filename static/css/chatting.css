@@ -88,6 +88,9 @@ background-color: rgba(0,0,0,0.3) !important;
 .active{
     background-color: rgba(0,0,0,0.3);
 }
+.notify{
+    background-color: rgba(207, 11, 11, 0.3);
+}
 .user_img{
     height: 70px;
     width: 70px;

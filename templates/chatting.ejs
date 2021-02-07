@@ -17,7 +17,7 @@
 	</head>
 	<!--Coded With Love By Mutiullah Samim-->
 	<body>
-        <a href="/logout" style="float: right; color: black;"><b>Logout</b></a>
+        <a id="logout" style="float: right; color: black;"><b>Logout</b></a>
 		<div class="container-fluid h-100">
 			<div class="row justify-content-center h-100">
 				<div class="col-md-4 col-xl-3 chat"><div class="card mb-sm-3 mb-md-0 contacts_card">
@@ -58,6 +58,7 @@
                                         <div class="user_info">
                                             <span><%= users[i].first_name %> <%= users[i].last_name %></span>
                                             <p>@<%= users[i].username %></p>
+                                            <p class="notification"></p>
                                         </div>
                                     </div>
                                 </li>
@@ -71,6 +72,7 @@
                                         <div class="user_info">
                                             <span><%= users[i].first_name %> <%= users[i].last_name %></span>
                                             <p>@<%= users[i].username %></p>
+                                            <p class="notification"></p>
                                         </div>
                                     </div>
                                 </li>
@@ -133,6 +135,8 @@
 								<textarea id="pingMsg" name="" class="form-control type_msg" placeholder="Type your message..."></textarea>
 								<div class="input-group-append">
 									<span onclick="sendMessage()" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></span>
+                                    <button id="play1" style="display: none;" onclick="play(1)"></button>
+                                    <button id="play2" style="display: none;" onclick="play(2)"></button>
 								</div>
 							</div>
 						</div>
@@ -144,10 +148,18 @@
     <script>
         var socket = io()
         var me = "<%= userInfo._id %>";
+        var online_users = "<%= online%>";
         $(document).ready(function(){
+            active_user = online_users.split(",");
+            for (i=0; i<active_user.length; i++){
+                $("."+active_user[i]+" .online_icon").removeClass("offline");
+            }
             $('#action_menu_btn').click(function(){
                 $('.action_menu').toggle();
             });
+            setTimeout(function(){
+            socket.emit('online', me);
+            },1000)
         });
         function getUserinfo(user, id){
             $('.chat_info span').html("chat with "+user);
@@ -158,6 +170,8 @@
             $("#"+id).addClass('msging');
             $(".contacts .active").removeClass("active");
             $("."+id).addClass("active");
+            $("."+id).removeClass("notify");
+            $("."+id+ " .notification").html("");
         }
         function sendMessage(){
             var msg = $("#pingMsg").val()
@@ -168,7 +182,7 @@
                             '<div class="img_cont_msg">'+
                                 '<img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" class="rounded-circle user_img_msg">'+
                             '</div>'+
-                            '<div class="msg_cotainer">'+ msg +'<span class="msg_time">9:12 AM, Today</span>'+
+                            '<div class="msg_cotainer">'+ msg +
                             '</div>'+
                         '</div>'
             $(".msg_card_body .msging").append(sendMsg);
@@ -180,13 +194,20 @@
         function msgRecieve(to,from,msg){
             var rcvMsg = '<div class="d-flex justify-content-end mb-4">'+
 								'<div class="msg_cotainer_send">'+ msg +
-									'<span class="msg_time_send">8:55 AM, Today</span>'+
+									'<span class="msg_time_send">'+
 								'</div>'+
 								'<div class="img_cont_msg">'+
 							'<img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" class="rounded-circle user_img_msg">'+
 								'</div>'+
 							'</div>'
-            $("#"+to+" "+"#"+from).append(rcvMsg);                
+            $("#"+to+" "+"#"+from).append(rcvMsg);  
+            if($("#"+to+" "+"#"+from).attr("style")=="display: none;"){
+                $("."+from).addClass("notify");
+                $("."+from+ " .notification").html("new notification");
+                $("#play1").click();
+            }else{
+                $("#play2").click();
+            }
         }
         socket.on('messaging', data => {
         // console.log(data);
@@ -201,5 +222,33 @@
         }
 
     })
+    socket.on('online', data => {
+        $("."+data.online+" .online_icon").removeClass("offline");
+        console.log("online",data);
+    })
+
+    socket.on('offline', data => {
+        $("."+data.offline+" .online_icon").addClass("offline")
+        console.log("offline",data);
+    })
+
+    $("#logout").click(function(){
+        socket.emit('offline', me);
+        window.location.href="/logout";
+    });
+
+    function play(step){
+        if(step == 1){
+            console.log("first play")
+            const notification1 = new Audio('sound/notification_2.mp3'); 
+            // notification1.muted = false;
+		    notification1.play();  
+        }else if(step == 2){
+            console.log("2nd play")
+            const notification2 = new Audio('sound/notification_1.mp3'); 
+            // notification2.muted = false;
+		    notification2.play();  
+        }
+    }
     </script>
 </html>
