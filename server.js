@@ -11,6 +11,10 @@ const https = require('https');
 var cors = require('cors');
 var router = express.Router();
 const session = require('express-session');
+// const flash = require('flash'); 
+const flash = require('connect-flash'); 
+
+app.use(flash()); 
 
 
 app.use(express.static("static"));
@@ -97,7 +101,6 @@ io.on('connection', socket => {
 
 function checkLogin(req, res, next){
   var userData = req.session.userdata;
-  // console.log(userData)
   if(!userData){
     res.redirect('/login');
   }else{
@@ -160,6 +163,10 @@ app.use('/api',router);
 userRoutes(router);
 
 app.get('/',checkLogin, function(req, res){
+  res.redirect('/chatting')
+})
+
+app.get('/likes',checkLogin, function(req, res){
   res.render('index', {likes:likes})
 });
 
@@ -189,19 +196,24 @@ app.post('/login', function(req, res){
   }else{
     var username = req.body.username;
     var password = req.body.password;
+    console.log("here plzz")
     userLogin(username, password).then(data => {
-      getUserInfo(data._id).then(data => {
-        req.session.userdata = data;
-        res.redirect('/chatting')
-      }).catch(err => {
-        res.status(500).send({
-          message:"Something went wrong: "+err.message
-        })
-      })
+      console.log("yes am here");
+      console.log(data);
     }).catch(err => {
-      console.log(err.messages)
+      console.log(err.message)
+      req.flash('message', 'Success!!'); 
+      res.redirect('/login')
+      // res.json({
+      //   message:"Invalid Credentials"
+      // })
     })
   }
+})
+
+
+app.get('/register', function(req, res){
+  res.render('registration')
 })
 
 app.get('/profile',checkLogin, function (req, res){
