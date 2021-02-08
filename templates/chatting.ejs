@@ -133,7 +133,7 @@
 								<div class="input-group-append">
 									<span class="input-group-text attach_btn"><i class="fas fa-paperclip"></i></span>
 								</div>
-								<textarea id="pingMsg" name="" class="form-control type_msg" placeholder="Type your message..."></textarea>
+								<textarea id="pingMsg" onkeypress="return searchKeyPress(event);" name="" class="form-control type_msg" placeholder="Type your message..."></textarea>
 								<div class="input-group-append">
 									<span onclick="sendMessage()" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></span>
                                     <button id="play1" style="display: none;" onclick="play(1)"></button>
@@ -204,14 +204,18 @@
 							'<img src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg" class="rounded-circle user_img_msg">'+
 								'</div>'+
 							'</div>'
-            $("#"+to+" "+"#"+from).append(rcvMsg);  
-            if($("#"+to+" "+"#"+from).attr("style")=="display: none;"){
-                $("."+from).addClass("notify");
-                $("."+from+ " .notification").html("new notification");
-                $("#play1").click();
-            }else{
-                $("#play2").click();
+            var present = $("#"+to+" "+"#"+from);
+            if(present){
+                $("#"+to+" "+"#"+from).append(rcvMsg);  
+                if($("#"+to+" "+"#"+from).attr("style")=="display: none;"){
+                    $("."+from).addClass("notify");
+                    $("."+from+ " .notification").html("new notification");
+                    $("#play1").click();
+                }else{
+                    $("#play2").click();
+                }
             }
+            
         }
         socket.on('messaging', data => {
         // console.log(data);
@@ -252,5 +256,16 @@
 		    notification2.play();  
         }
     }
+    function searchKeyPress(e)
+        {
+            // look for window.event in case event isn't passed in
+            e = e || window.event;
+            if (e.keyCode == 13)
+            {
+                $('.send_btn').click();
+                return false;
+            }
+            return true;
+}
     </script>
 </html>
